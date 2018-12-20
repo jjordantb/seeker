@@ -15,7 +15,11 @@ public class RenderingSurface extends JPanel {
         // Players
         for (Player player : Game.SCENE_GRAPH.players.values()) {
             if (player != null) {
-                g.setColor(Color.GREEN);
+                if (player.getName().equals(Game.SCENE_GRAPH.localPlayer.getName())) {
+                    g.setColor(Color.BLACK);
+                } else {
+                    g.setColor(Color.RED);
+                }
                 g.fillOval(player.getX() - 5, player.getY() - 5, 10, 10);
             }
         }

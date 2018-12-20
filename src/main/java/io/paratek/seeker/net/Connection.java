@@ -28,6 +28,7 @@ public abstract class Connection implements Runnable {
     }
 
     public void write(final Packet packet) throws IOException {
+        this.outputStream.reset();
         this.outputStream.writeObject(packet);
     }
 
@@ -35,14 +36,12 @@ public abstract class Connection implements Runnable {
         return (Packet) this.inputStream.readObject();
     }
 
-    public boolean close() {
+    public void close() {
         try {
             this.socket.close();
             this.connected = false;
-            return true;
         } catch (IOException e) {
             e.printStackTrace();
-            return false;
         }
     }
 

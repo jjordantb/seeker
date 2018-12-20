@@ -1,6 +1,8 @@
 package io.paratek.seeker.scene.entity;
 
-public abstract class Entity {
+import java.io.Serializable;
+
+public abstract class Entity implements Serializable {
 
     private int x, y;
 

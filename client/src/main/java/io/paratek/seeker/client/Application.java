@@ -3,6 +3,7 @@ package io.paratek.seeker.client;
 import io.paratek.seeker.client.core.Display;
 import io.paratek.seeker.client.core.GameEngine;
 import io.paratek.seeker.client.core.RenderingSurface;
+import io.paratek.seeker.scene.entity.Player;
 
 import java.util.Random;
 
@@ -15,7 +16,7 @@ public class Application {
         display.init();
         new Thread(engine).start();
 
-        Game.LOGIN_HANDLER.login("" + new Random().nextInt(100), "Kappa");
+        Game.LOGIN_HANDLER.login(new Player("" + new Random().nextInt(100)));
     }
 
 }

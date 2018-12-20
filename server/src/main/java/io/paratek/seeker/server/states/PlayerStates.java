@@ -18,23 +18,15 @@ public class PlayerStates {
 
     private final ConcurrentHashMap<Player, ServerConnection> activePlayers = new ConcurrentHashMap<>();
 
-    public ConcurrentHashMap<Player, ServerConnection> getActivePlayers() {
-        return activePlayers;
-    }
-
-    public boolean logoutPlayer(final Player player) {
+    public void logoutPlayer(final Player player) {
         if (this.activePlayers.containsKey(player)) {
             final ServerConnection con = this.activePlayers.get(player);
-            try {
-                con.write(new Packet(Opcodes.LOGOUT, this.createLogoutResponse(player)));
-            } catch (IOException e) {
-                for (Map.Entry<Player, ServerConnection> entry : this.activePlayers.entrySet()) {
-                    if (!entry.getKey().equals(player)) {
-                        try {
-                            entry.getValue().write(new Packet(Opcodes.LOGOUT, player.getName().getBytes()));
-                        } catch (IOException e1) {
-                            e1.printStackTrace();
-                        }
+            for (Map.Entry<Player, ServerConnection> entry : this.activePlayers.entrySet()) {
+                if (!entry.getKey().equals(player)) {
+                    try {
+                        entry.getValue().write(new Packet(Opcodes.LOGOUT, player));
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
                     }
                 }
             }
@@ -42,18 +34,17 @@ public class PlayerStates {
             con.close();
             this.activePlayers.remove(player);
         }
-        return true;
     }
 
     public boolean loginPlayer(final Player player, final ServerConnection connection) {
         try {
-            connection.write(new Packet(Opcodes.LOGIN_SUCCESSFUL, player.getName().getBytes()));
+            connection.write(new Packet(Opcodes.LOGIN_SUCCESSFUL, player));
             this.activePlayers.put(player, connection);
-
             for (Map.Entry<Player, ServerConnection> entry : this.activePlayers.entrySet()) {
                 if (!entry.getKey().equals(player)) {
-                    entry.getValue().write(new Packet(Opcodes.ADD_PLAYER, player.getName().getBytes()));
+                    entry.getValue().write(new Packet(Opcodes.ADD_PLAYER, player));
                 }
+                connection.write(new Packet(Opcodes.ADD_PLAYER, entry.getKey()));
             }
             return true;
         } catch (IOException e) {
@@ -62,11 +53,23 @@ public class PlayerStates {
         return false;
     }
 
-    private byte[] createLogoutResponse(final Player player) {
-        final byte[] bytes = new byte[200];
-        final String playerName = player.getName();
-        System.arraycopy(playerName.getBytes(), 0, bytes, 0, playerName.getBytes().length);
-        return bytes;
+    /**
+     * Pushes an updated player location to all players, in reality this should only happen if the two players are in
+     * the same region.
+     * @param player
+     * @return
+     */
+    public void pushUpdatedPlayer(final Player player) {
+        for (Map.Entry<Player, ServerConnection> entry : this.activePlayers.entrySet()) {
+            try {
+                entry.getValue().write(new Packet(Opcodes.UPDATE_PLAYER_LOCATION, player));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        final ServerConnection connection = this.activePlayers.get(player);
+        this.activePlayers.remove(player);
+        this.activePlayers.put(player, connection);
     }
 
 }

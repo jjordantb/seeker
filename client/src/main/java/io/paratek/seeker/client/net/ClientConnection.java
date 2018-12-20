@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.nio.ByteBuffer;
 import java.util.logging.Logger;
 
 public class ClientConnection extends Connection {
@@ -35,27 +34,30 @@ public class ClientConnection extends Connection {
                 final int op = read.getOp();
                 if (op == Opcodes.LOGIN_SUCCESSFUL) {
                     LOG.info("Login Successful!");
-                    final Player player = new Player(new String(read.getPayload()));
+                    final Player player = (Player) read.getPayload();
                     Game.SCENE_GRAPH.localPlayer = player;
                     Game.SCENE_GRAPH.players.put(player.getName(), player);
                 } else if (op == Opcodes.ADD_PLAYER) {
-                    final Player player = new Player(new String(read.getPayload()));
+                    final Player player = (Player) read.getPayload();
                     Game.SCENE_GRAPH.players.put(player.getName(), player);
                 } else if (op == Opcodes.UPDATE_PLAYER_LOCATION) {
-                    byte[] nameBytes = new byte[200];
-                    System.arraycopy(read.getPayload(), 0, nameBytes, 0, nameBytes.length);
-                    final String name = new String(nameBytes);
-                    final Player player = Game.SCENE_GRAPH.players.get(name);
-                    byte[] x = new byte[16];
-                    byte[] y = new byte[16];
-                    System.arraycopy(read.getPayload(), 200, x, 0, x.length);
-                    System.arraycopy(read.getPayload(), 216, y, 0, y.length);
-                    player.setX(ByteBuffer.wrap(x).getInt());
-                    player.setY(ByteBuffer.wrap(y).getInt());
+                    final Player player = (Player) read.getPayload();
+                    Game.SCENE_GRAPH.players.replace(player.getName(), player);
+                    if (player.getName().equals(Game.SCENE_GRAPH.localPlayer.getName())) {
+                        Game.SCENE_GRAPH.localPlayer = player;
+                    }
+                } else if (op == Opcodes.LOGOUT) {
+                    final Player player = (Player) read.getPayload();
+                    if (player.getName().equals(Game.SCENE_GRAPH.localPlayer.getName())) {
+                        LOG.info("Kicked from Server? IDK");
+                    } else {
+                        Game.SCENE_GRAPH.players.remove(player.getName());
+                    }
                 }
             } catch (IOException e) {
                 LOG.severe("SERVER CRASH");
                 this.close();
+                System.exit(-1);
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }

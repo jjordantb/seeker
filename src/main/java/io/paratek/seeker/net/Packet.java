@@ -5,9 +5,9 @@ import java.io.Serializable;
 public class Packet implements Serializable {
 
     private final int op;
-    private final byte[] payload;
+    private final Serializable payload;
 
-    public Packet(int op, byte[] payload) {
+    public Packet(int op, Serializable payload) {
         this.op = op;
         this.payload = payload;
     }
@@ -16,7 +16,7 @@ public class Packet implements Serializable {
         return op;
     }
 
-    public byte[] getPayload() {
+    public Serializable getPayload() {
         return payload;
     }
 

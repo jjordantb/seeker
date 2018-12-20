@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.Arrays;
 import java.util.logging.Logger;
 
 public class ServerConnection extends Connection {
@@ -39,17 +38,16 @@ public class ServerConnection extends Connection {
                     if (player != null) {
                         continue;
                     }
-                    final byte[] usernameBytes = Arrays.copyOfRange(read.getPayload(), 0, 199);
-                    final byte[] passwordbytes = Arrays.copyOfRange(read.getPayload(), 200, 399);
-                    final String username = new String(usernameBytes);
-                    final String password = new String(passwordbytes);
-                    LOG.info("Player " + username + " logging in.");
-                    this.player = new Player(username);
+                    this.player = (Player) read.getPayload();
+                    LOG.info("Player " + this.player.getName() + " logging in.");
                     if (ServerStates.PLAYER_STATES.loginPlayer(this.player, this)) {
-                        LOG.info("Player " + username + " logged in successfully.");
+                        LOG.info("Player " + this.player + " logged in successfully.");
                     }
                 } else if (op == Opcodes.LOGOUT) {
                     ServerStates.PLAYER_STATES.logoutPlayer(this.player);
+                } else if (op == Opcodes.UPDATE_PLAYER_LOCATION) {
+                    this.player = (Player) read.getPayload();
+                    ServerStates.PLAYER_STATES.pushUpdatedPlayer(this.player);
                 }
             } catch (IOException e) {
                 // Connection Closed

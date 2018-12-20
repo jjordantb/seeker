@@ -1,15 +1,12 @@
 package io.paratek.seeker.client.core;
 
-import com.sun.deploy.util.ArrayUtil;
 import io.paratek.seeker.client.Game;
 import io.paratek.seeker.net.Opcodes;
 import io.paratek.seeker.net.Packet;
 import io.paratek.seeker.scene.entity.Player;
-import org.apache.commons.lang3.ArrayUtils;
 
 import java.awt.event.KeyEvent;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 public class GameEngine implements Runnable {
 
@@ -66,10 +63,8 @@ public class GameEngine implements Runnable {
         }
         // Update Server
         if (updatePosition) {
-            final Player local = Game.SCENE_GRAPH.localPlayer;
-            final byte[] buffer = ArrayUtils.addAll(ByteBuffer.allocate(8).putInt(local.getX()).array(), ByteBuffer.allocate(8).putInt(local.getY()).array());
             try {
-                Game.CLIENT_CONNECTION.write(new Packet(Opcodes.UPDATE_PLAYER_LOCATION, buffer));
+                Game.CLIENT_CONNECTION.write(new Packet(Opcodes.UPDATE_PLAYER_LOCATION, Game.SCENE_GRAPH.localPlayer));
             } catch (IOException e) {
                 e.printStackTrace();
             }
